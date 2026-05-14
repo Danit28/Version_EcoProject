@@ -13,7 +13,7 @@ app.get('/health', (_req, res) => {
   res.json({ ok: true, service: 'version-eco-api' });
 });
 
-app.use('/api', apiRouter);
+app.use(apiRouter); 
 
 app.use((err, _req, res, _next) => {
   console.error(err);
