@@ -15,8 +15,8 @@ const unidades = ['kg', 'g', 'lt', 'ml', 'unidad'];
 const emptyForm = {
   nombre: '',
   unidad_medida: 'kg',
-  cantidad_disponible: 0,
-  nivel_minimo: 0
+  cantidad_disponible: '',
+  nivel_minimo: ''
 };
 
 export function MateriasPrimasPage() {
@@ -25,7 +25,7 @@ export function MateriasPrimasPage() {
   const [editingId, setEditingId] = useState(null);
   const [openModal, setOpenModal] = useState(false);
   const [openStockModal, setOpenStockModal] = useState(false);
-  const [stockForm, setStockForm] = useState({ materia_prima_id: '', cantidad_agregar: 0 });
+  const [stockForm, setStockForm] = useState({ materia_prima_id: '', cantidad_agregar: '' });
   const [error, setError] = useState('');
 
   async function load() {
@@ -43,9 +43,17 @@ export function MateriasPrimasPage() {
 
     try {
       if (editingId) {
-        await updateMateriaPrima(editingId, form);
+        await updateMateriaPrima(editingId, {
+          ...form,
+          cantidad_disponible: Number(form.cantidad_disponible),
+          nivel_minimo: Number(form.nivel_minimo)
+        });
       } else {
-        await createMateriaPrima(form);
+        await createMateriaPrima({
+          ...form,
+          cantidad_disponible: Number(form.cantidad_disponible),
+          nivel_minimo: Number(form.nivel_minimo)
+        });
       }
       setForm(emptyForm);
       setEditingId(null);
@@ -74,8 +82,8 @@ export function MateriasPrimasPage() {
     setForm({
       nombre: item.nombre,
       unidad_medida: item.unidad_medida,
-      cantidad_disponible: Number(item.cantidad_disponible),
-      nivel_minimo: Number(item.nivel_minimo)
+      cantidad_disponible: String(item.cantidad_disponible),
+      nivel_minimo: String(item.nivel_minimo)
     });
     setOpenModal(true);
   }
@@ -87,7 +95,7 @@ export function MateriasPrimasPage() {
   }
 
   function startStockAdd() {
-    setStockForm({ materia_prima_id: '', cantidad_agregar: 0 });
+    setStockForm({ materia_prima_id: '', cantidad_agregar: '' });
     setOpenStockModal(true);
   }
 
@@ -100,7 +108,7 @@ export function MateriasPrimasPage() {
         Number(stockForm.materia_prima_id),
         Number(stockForm.cantidad_agregar)
       );
-      setStockForm({ materia_prima_id: '', cantidad_agregar: 0 });
+      setStockForm({ materia_prima_id: '', cantidad_agregar: '' });
       setOpenStockModal(false);
       await load();
     } catch (err) {
@@ -173,7 +181,7 @@ export function MateriasPrimasPage() {
                 step="0.001"
                 placeholder="Ejemplo: 100"
                 value={form.cantidad_disponible}
-                onChange={(e) => setForm((s) => ({ ...s, cantidad_disponible: Number(e.target.value) }))}
+                onChange={(e) => setForm((s) => ({ ...s, cantidad_disponible: e.target.value }))}
                 required
               />
             </label>
@@ -184,7 +192,7 @@ export function MateriasPrimasPage() {
                 step="0.001"
                 placeholder="Ejemplo: 20"
                 value={form.nivel_minimo}
-                onChange={(e) => setForm((s) => ({ ...s, nivel_minimo: Number(e.target.value) }))}
+                onChange={(e) => setForm((s) => ({ ...s, nivel_minimo: e.target.value }))}
                 required
               />
             </label>

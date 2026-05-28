@@ -15,7 +15,7 @@ export function InventarioPage() {
   const [sedes, setSedes] = useState([]);
   const [productos, setProductos] = useState([]);
   const [sedeFiltro, setSedeFiltro] = useState('');
-  const [ajuste, setAjuste] = useState({ sede_id: '', producto_id: '', cantidad_nueva: 0, referencia: '' });
+  const [ajuste, setAjuste] = useState({ sede_id: '', producto_id: '', cantidad_nueva: '', referencia: '' });
   const [error, setError] = useState('');
 
   async function loadData() {
@@ -69,7 +69,7 @@ export function InventarioPage() {
         cantidad_delta: cantidadDelta,
         referencia: ajuste.referencia
       });
-      setAjuste({ sede_id: '', producto_id: '', cantidad_nueva: 0, referencia: '' });
+      setAjuste({ sede_id: '', producto_id: '', cantidad_nueva: '', referencia: '' });
       await loadData();
     } catch (err) {
       setError(err.response?.data?.error || err.message);

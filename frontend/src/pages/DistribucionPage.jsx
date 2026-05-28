@@ -11,7 +11,7 @@ export function DistribucionPage() {
   const [inventarioCentral, setInventarioCentral] = useState([]);
   const [productos, setProductos] = useState([]);
   const [sedes, setSedes] = useState([]);
-  const [form, setForm] = useState({ producto_id: '', sede_id: '', cantidad: 1, referencia: '' });
+  const [form, setForm] = useState({ producto_id: '', sede_id: '', cantidad: '', referencia: '' });
   const [error, setError] = useState('');
 
   async function loadData() {
@@ -42,7 +42,7 @@ export function DistribucionPage() {
         referencia: form.referencia
       });
 
-      setForm({ producto_id: '', sede_id: '', cantidad: 1, referencia: '' });
+      setForm({ producto_id: '', sede_id: '', cantidad: '', referencia: '' });
       await loadData();
     } catch (err) {
       setError(err.response?.data?.detail || err.response?.data?.error || err.message);

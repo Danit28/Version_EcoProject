@@ -5,7 +5,7 @@ import { formatCantidad } from '../utils/format.js';
 export function ProduccionPage() {
   const [productos, setProductos] = useState([]);
   const [producciones, setProducciones] = useState([]);
-  const [form, setForm] = useState({ producto_id: '', cantidad_producida: 1, observacion: '' });
+  const [form, setForm] = useState({ producto_id: '', cantidad_producida: '', observacion: '' });
   const [error, setError] = useState('');
 
   async function load() {
@@ -27,7 +27,7 @@ export function ProduccionPage() {
         cantidad_producida: Number(form.cantidad_producida),
         observacion: form.observacion
       });
-      setForm({ producto_id: '', cantidad_producida: 1, observacion: '' });
+      setForm({ producto_id: '', cantidad_producida: '', observacion: '' });
       await load();
     } catch (err) {
       setError(err.response?.data?.detail || err.response?.data?.error || err.message);
