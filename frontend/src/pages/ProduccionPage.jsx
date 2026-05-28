@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getProduccion, getProductos, registrarProduccion } from '../api/api.js';
+import { formatCantidad } from '../utils/format.js';
 
 export function ProduccionPage() {
   const [productos, setProductos] = useState([]);
@@ -82,7 +83,7 @@ export function ProduccionPage() {
               <td>{new Date(p.fecha).toLocaleString()}</td>
               <td>{p.origen}</td>
               <td>{p.producto}</td>
-              <td>{p.cantidad_producida}</td>
+              <td>{formatCantidad(p.cantidad_producida)}</td>
               <td>{p.observacion}</td>
             </tr>
           ))}

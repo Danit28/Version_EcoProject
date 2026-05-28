@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Pencil, Plus } from 'lucide-react';
 import {
+  abastecerMateriaPrima,
   createMateriaPrima,
   deleteMateriaPrima,
   getMateriasPrimas,
   updateMateriaPrima
 } from '../api/api.js';
 import { Modal } from '../components/Modal.jsx';
+import { formatCantidad } from '../utils/format.js';
 
 const unidades = ['kg', 'g', 'lt', 'ml', 'unidad'];
 
@@ -22,6 +24,8 @@ export function MateriasPrimasPage() {
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
   const [openModal, setOpenModal] = useState(false);
+  const [openStockModal, setOpenStockModal] = useState(false);
+  const [stockForm, setStockForm] = useState({ materia_prima_id: '', cantidad_agregar: 0 });
   const [error, setError] = useState('');
 
   async function load() {
@@ -82,6 +86,28 @@ export function MateriasPrimasPage() {
     setOpenModal(true);
   }
 
+  function startStockAdd() {
+    setStockForm({ materia_prima_id: '', cantidad_agregar: 0 });
+    setOpenStockModal(true);
+  }
+
+  async function onSubmitStock(e) {
+    e.preventDefault();
+    setError('');
+
+    try {
+      await abastecerMateriaPrima(
+        Number(stockForm.materia_prima_id),
+        Number(stockForm.cantidad_agregar)
+      );
+      setStockForm({ materia_prima_id: '', cantidad_agregar: 0 });
+      setOpenStockModal(false);
+      await load();
+    } catch (err) {
+      setError(err.response?.data?.error || err.message);
+    }
+  }
+
   return (
     <section>
       <h2>Materias Primas</h2>
@@ -90,6 +116,7 @@ export function MateriasPrimasPage() {
 
       <div className="section-actions">
         <button type="button" onClick={startCreate}><Plus size={16} /> Nueva Materia Prima</button>
+        <button type="button" onClick={startStockAdd}><Plus size={16} /> Agregar Stock</button>
       </div>
 
       <table>
@@ -104,8 +131,8 @@ export function MateriasPrimasPage() {
               <td>{it.id}</td>
               <td>{it.nombre}</td>
               <td>{it.unidad_medida}</td>
-              <td>{it.cantidad_disponible}</td>
-              <td>{it.nivel_minimo}</td>
+              <td>{formatCantidad(it.cantidad_disponible)}</td>
+              <td>{formatCantidad(it.nivel_minimo)}</td>
               <td>
                 <button onClick={() => startEdit(it)}><Pencil size={14} /> Editar</button>
                 <button className="danger" onClick={() => onDelete(it.id)}>Retirar</button>
@@ -162,6 +189,43 @@ export function MateriasPrimasPage() {
               />
             </label>
             <button type="submit">{editingId ? 'Guardar Cambios' : 'Crear Materia Prima'}</button>
+          </form>
+        </Modal>
+      )}
+
+      {openStockModal && (
+        <Modal
+          title="Agregar stock de materia prima"
+          onClose={() => setOpenStockModal(false)}
+        >
+          <form className="form-grid" onSubmit={onSubmitStock}>
+            <label className="field">
+              <span>Materia prima</span>
+              <select
+                value={stockForm.materia_prima_id}
+                onChange={(e) => setStockForm((s) => ({ ...s, materia_prima_id: e.target.value }))}
+                required
+              >
+                <option value="">Selecciona una materia prima</option>
+                {items.map((it) => (
+                  <option key={it.id} value={it.id}>
+                    {it.nombre} ({it.unidad_medida})
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="field">
+              <span>Cantidad a agregar</span>
+              <input
+                type="number"
+                step="0.001"
+                placeholder="Ejemplo: 25"
+                value={stockForm.cantidad_agregar}
+                onChange={(e) => setStockForm((s) => ({ ...s, cantidad_agregar: e.target.value }))}
+                required
+              />
+            </label>
+            <button type="submit">Agregar al inventario</button>
           </form>
         </Modal>
       )}

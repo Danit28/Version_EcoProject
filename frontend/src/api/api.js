@@ -34,6 +34,11 @@ export async function deleteMateriaPrima(id) {
   return data;
 }
 
+export async function abastecerMateriaPrima(id, cantidad_agregar) {
+  const { data } = await api.post(`/materias-primas/${id}/abastecer`, { cantidad_agregar });
+  return data;
+}
+
 export async function getProductos() {
   const { data } = await api.get('/productos');
   return data;

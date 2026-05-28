@@ -404,7 +404,7 @@ li {
 }
 
 .modal-card {
-  width: min(740px, 95vw);
+  width: min(900px, 95vw);
   background: var(--bg-soft);
   border: 1px solid #d8d1c2;
   border-radius: 16px;
@@ -426,6 +426,8 @@ li {
 .icon-button {
   width: 34px;
   height: 34px;
+  padding: 0;
+  line-height: 0;
   border-radius: 50%;
   border: 1px solid #cabfaa;
   background: #f3eee2;

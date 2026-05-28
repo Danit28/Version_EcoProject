@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getAlertas, getResumen } from '../api/api.js';
+import { formatCantidad } from '../utils/format.js';
 
 function severityFromRatio(actual, min) {
   if (!min || min <= 0) return { key: 'ok', label: 'Normal' };
@@ -51,7 +52,10 @@ export function DashboardPage() {
                 <div key={a.id} className="alert-item">
                   <div>
                     <strong>{a.nombre}</strong>
-                    <p>{a.cantidad_disponible} {a.unidad_medida} disponible - minimo {a.nivel_minimo}</p>
+                    <p>
+                      {formatCantidad(a.cantidad_disponible)} {a.unidad_medida} disponible - minimo{' '}
+                      {formatCantidad(a.nivel_minimo)}
+                    </p>
                   </div>
                   <span className={`status-chip ${sev.key}`}>{sev.label}</span>
                 </div>
@@ -70,7 +74,10 @@ export function DashboardPage() {
                 <div key={a.id} className="alert-item">
                   <div>
                     <strong>{a.producto}</strong>
-                    <p>{a.sede}: {a.cantidad_actual} disponible - minimo {a.cantidad_minima}</p>
+                    <p>
+                      {a.sede}: {formatCantidad(a.cantidad_actual)} disponible - minimo{' '}
+                      {formatCantidad(a.cantidad_minima)}
+                    </p>
                   </div>
                   <span className={`status-chip ${sev.key}`}>{sev.label}</span>
                 </div>

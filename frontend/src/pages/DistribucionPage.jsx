@@ -5,6 +5,7 @@ import {
   getProductos,
   getSedes
 } from '../api/api.js';
+import { formatCantidad } from '../utils/format.js';
 
 export function DistribucionPage() {
   const [inventarioCentral, setInventarioCentral] = useState([]);
@@ -66,7 +67,7 @@ export function DistribucionPage() {
             {inventarioCentral.map((i) => (
               <tr key={i.id}>
                 <td>{i.producto}</td>
-                <td>{i.cantidad_actual}</td>
+                <td>{formatCantidad(i.cantidad_actual)}</td>
                 <td>{new Date(i.updated_at).toLocaleString()}</td>
               </tr>
             ))}

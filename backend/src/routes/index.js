@@ -95,6 +95,33 @@ apiRouter.put('/materias-primas/:id', async (req, res, next) => {
   }
 });
 
+apiRouter.post('/materias-primas/:id/abastecer', async (req, res, next) => {
+  try {
+    const id = Number(req.params.id);
+    const cantidadAgregar = Number(req.body?.cantidad_agregar);
+
+    if (!Number.isFinite(cantidadAgregar) || cantidadAgregar <= 0) {
+      return res.status(400).json({ error: 'Cantidad a agregar invalida' });
+    }
+
+    const result = await query(
+      `UPDATE materia_prima
+       SET cantidad_disponible = cantidad_disponible + $1
+       WHERE id = $2 AND activo = TRUE
+       RETURNING *`,
+      [cantidadAgregar, id]
+    );
+
+    if (!result.rowCount) {
+      return res.status(404).json({ error: 'Materia prima no encontrada' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    next(error);
+  }
+});
+
 apiRouter.delete('/materias-primas/:id', async (req, res, next) => {
   try {
     const id = Number(req.params.id);

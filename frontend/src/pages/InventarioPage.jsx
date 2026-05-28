@@ -7,6 +7,7 @@ import {
   getSedes,
   setInventarioMinimo
 } from '../api/api.js';
+import { formatCantidad } from '../utils/format.js';
 
 export function InventarioPage() {
   const [inventario, setInventario] = useState([]);
@@ -14,7 +15,7 @@ export function InventarioPage() {
   const [sedes, setSedes] = useState([]);
   const [productos, setProductos] = useState([]);
   const [sedeFiltro, setSedeFiltro] = useState('');
-  const [ajuste, setAjuste] = useState({ sede_id: '', producto_id: '', cantidad_delta: 0, referencia: '' });
+  const [ajuste, setAjuste] = useState({ sede_id: '', producto_id: '', cantidad_nueva: 0, referencia: '' });
   const [error, setError] = useState('');
 
   async function loadData() {
@@ -47,13 +48,28 @@ export function InventarioPage() {
     e.preventDefault();
     setError('');
     try {
+      const sedeId = Number(ajuste.sede_id);
+      const productoId = Number(ajuste.producto_id);
+      const cantidadNueva = Number(ajuste.cantidad_nueva);
+
+      const registro = inventario.find(
+        (item) => item.sede_id === sedeId && item.producto_id === productoId
+      );
+
+      if (!registro) {
+        setError('No se encontro el producto en el inventario de la sede seleccionada.');
+        return;
+      }
+
+      const cantidadDelta = cantidadNueva - Number(registro.cantidad_actual);
+
       await ajusteInventario({
-        sede_id: Number(ajuste.sede_id),
-        producto_id: Number(ajuste.producto_id),
-        cantidad_delta: Number(ajuste.cantidad_delta),
+        sede_id: sedeId,
+        producto_id: productoId,
+        cantidad_delta: cantidadDelta,
         referencia: ajuste.referencia
       });
-      setAjuste({ sede_id: '', producto_id: '', cantidad_delta: 0, referencia: '' });
+      setAjuste({ sede_id: '', producto_id: '', cantidad_nueva: 0, referencia: '' });
       await loadData();
     } catch (err) {
       setError(err.response?.data?.error || err.message);
@@ -85,8 +101,8 @@ export function InventarioPage() {
             <tr key={i.id} className={i.stock_bajo ? 'low-stock' : ''}>
               <td>{i.sede}</td>
               <td>{i.producto}</td>
-              <td>{i.cantidad_actual}</td>
-              <td>{i.cantidad_minima}</td>
+              <td>{formatCantidad(i.cantidad_actual)}</td>
+              <td>{formatCantidad(i.cantidad_minima)}</td>
               <td>{i.stock_bajo ? 'Si' : 'No'}</td>
               <td>
                 <input
@@ -101,7 +117,10 @@ export function InventarioPage() {
       </table>
 
       <article className="panel">
-        <h3>Ajuste Manual de Inventario</h3>
+        <h3>Actualizar inventario por ventas</h3>
+        <p className="form-hint">
+          Escribe el nuevo total que debe quedar en inventario para la sede y producto seleccionados.
+        </p>
         <form className="form-grid" onSubmit={onSubmitAjuste}>
           <select value={ajuste.sede_id} onChange={(e) => setAjuste((s) => ({ ...s, sede_id: e.target.value }))} required>
             <option value="">Selecciona sede</option>
@@ -113,18 +132,18 @@ export function InventarioPage() {
           </select>
           <input
             type="number"
-            placeholder="Cantidad delta (+/-)"
-            value={ajuste.cantidad_delta}
-            onChange={(e) => setAjuste((s) => ({ ...s, cantidad_delta: e.target.value }))}
+            placeholder="Nuevo total en inventario"
+            value={ajuste.cantidad_nueva}
+            onChange={(e) => setAjuste((s) => ({ ...s, cantidad_nueva: e.target.value }))}
             required
           />
           <input
-            placeholder="Referencia (ej. venta diaria)"
+            placeholder="Referencia de la venta (ej. cierre diario)"
             value={ajuste.referencia}
             onChange={(e) => setAjuste((s) => ({ ...s, referencia: e.target.value }))}
             required
           />
-          <button type="submit">Aplicar Ajuste</button>
+          <button type="submit">Actualizar Inventario</button>
         </form>
       </article>
 
@@ -143,7 +162,7 @@ export function InventarioPage() {
                 <td>{m.sede}</td>
                 <td>{m.producto}</td>
                 <td>{m.tipo}</td>
-                <td>{m.cantidad_delta}</td>
+                <td>{formatCantidad(m.cantidad_delta)}</td>
                 <td>{m.referencia}</td>
               </tr>
             ))}
