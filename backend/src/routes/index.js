@@ -545,9 +545,30 @@ apiRouter.put('/inventario/:id/minimo', async (req, res, next) => {
 apiRouter.post('/inventario/ajustes', async (req, res, next) => {
   try {
     const { sede_id, producto_id, cantidad_delta, referencia } = req.body;
+    const sedeId = Number(sede_id);
+    const productoId = Number(producto_id);
+    const cantidadDelta = Number(cantidad_delta);
+
+    if (!Number.isFinite(sedeId) || !Number.isFinite(productoId) || !Number.isFinite(cantidadDelta)) {
+      return res.status(400).json({ error: 'Datos de ajuste invalidos' });
+    }
+
+    const result = await query(
+      `UPDATE inventario_sede
+       SET cantidad_actual = cantidad_actual + $1
+       WHERE sede_id = $2 AND producto_id = $3
+       RETURNING id`,
+      [cantidadDelta, sedeId, productoId]
+    );
+
+    if (!result.rowCount) {
+      return res.status(404).json({ error: 'Registro de inventario no encontrado' });
+    }
+
     await query(
-      'SELECT fn_ajustar_inventario_manual($1, $2, $3, $4)',
-      [sede_id, producto_id, cantidad_delta, referencia]
+      `INSERT INTO inventario_movimiento (sede_id, producto_id, tipo, cantidad_delta, referencia)
+       VALUES ($1, $2, 'AJUSTE_MANUAL', $3, $4)`,
+      [sedeId, productoId, cantidadDelta, referencia || null]
     );
 
     res.status(201).json({ ok: true });
