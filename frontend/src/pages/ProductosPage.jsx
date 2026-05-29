@@ -88,7 +88,7 @@ export function ProductosPage() {
       setFormula(
         data.map((d) => ({
           materia_prima_id: d.materia_prima_id,
-          cantidad_requerida: Number(d.cantidad_requerida)
+          cantidad_requerida: String(d.cantidad_requerida)
         }))
       );
     } catch (err) {
@@ -98,7 +98,7 @@ export function ProductosPage() {
 
   function addFormulaRow() {
     if (!materias.length) return;
-    setFormula((prev) => [...prev, { materia_prima_id: materias[0].id, cantidad_requerida: 1 }]);
+    setFormula((prev) => [...prev, { materia_prima_id: materias[0].id, cantidad_requerida: '' }]);
   }
 
   function updateFormulaRow(index, patch) {
@@ -112,7 +112,18 @@ export function ProductosPage() {
   async function guardarFormula() {
     if (!productoSeleccionado) return;
     try {
-      await saveFormula(productoSeleccionado, formula);
+      const detalles = formula.map((row) => ({
+        materia_prima_id: row.materia_prima_id,
+        cantidad_requerida: Number(row.cantidad_requerida)
+      }));
+
+      const invalid = detalles.some((row) => !Number.isFinite(row.cantidad_requerida) || row.cantidad_requerida <= 0);
+      if (invalid) {
+        setError('Todas las cantidades deben ser mayores a cero.');
+        return;
+      }
+
+      await saveFormula(productoSeleccionado, detalles);
       alert('Formula guardada');
     } catch (err) {
       setError(err.response?.data?.error || err.message);
@@ -192,7 +203,7 @@ export function ProductosPage() {
                   step="0.001"
                   min="0.001"
                   value={row.cantidad_requerida}
-                  onChange={(e) => updateFormulaRow(idx, { cantidad_requerida: Number(e.target.value) })}
+                  onChange={(e) => updateFormulaRow(idx, { cantidad_requerida: e.target.value })}
                 />
                 <button className="danger" onClick={() => removeFormulaRow(idx)}>Quitar</button>
               </div>

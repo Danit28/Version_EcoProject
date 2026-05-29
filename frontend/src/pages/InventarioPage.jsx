@@ -53,7 +53,7 @@ export function InventarioPage() {
       const cantidadNueva = Number(ajuste.cantidad_nueva);
 
       const registro = inventario.find(
-        (item) => item.sede_id === sedeId && item.producto_id === productoId
+        (item) => Number(item.sede_id) === sedeId && Number(item.producto_id) === productoId
       );
 
       if (!registro) {
