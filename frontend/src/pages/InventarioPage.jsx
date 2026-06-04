@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   ajusteInventario,
+  deleteInventarioRegistro,
   getInventario,
   getMovimientos,
   getProductos,
@@ -43,6 +44,16 @@ export function InventarioPage() {
   async function actualizarMinimo(id, value) {
     try {
       await setInventarioMinimo(id, Number(value));
+      await loadData();
+    } catch (err) {
+      setError(err.response?.data?.error || err.message);
+    }
+  }
+
+  async function onDeleteInventario(id, sede, producto) {
+    if (!window.confirm(`Esto eliminara el producto ${producto} de la sede ${sede}. Deseas continuar?`)) return;
+    try {
+      await deleteInventarioRegistro(id);
       await loadData();
     } catch (err) {
       setError(err.response?.data?.error || err.message);
@@ -98,7 +109,7 @@ export function InventarioPage() {
       <table>
         <thead>
           <tr>
-            <th>Sede</th><th>Producto</th><th>Actual</th><th>Minimo</th><th>Stock bajo</th><th>Editar minimo</th>
+            <th>Sede</th><th>Producto</th><th>Actual</th><th>Minimo</th><th>Stock bajo</th><th>Editar minimo</th><th>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -115,6 +126,14 @@ export function InventarioPage() {
                   defaultValue={i.cantidad_minima}
                   onBlur={(e) => actualizarMinimo(i.id, e.target.value)}
                 />
+              </td>
+              <td>
+                <button
+                  className="danger"
+                  onClick={() => onDeleteInventario(i.id, i.sede, i.producto)}
+                >
+                  Eliminar
+                </button>
               </td>
             </tr>
           ))}

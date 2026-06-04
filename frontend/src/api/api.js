@@ -108,6 +108,10 @@ export async function setInventarioMinimo(id, cantidad_minima) {
   return data;
 }
 
+export async function deleteInventarioRegistro(id) {
+  await api.delete(`/inventario/${id}`);
+}
+
 export async function ajusteInventario(payload) {
   const { data } = await api.post('/inventario/ajustes', payload);
   return data;

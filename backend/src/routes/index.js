@@ -543,6 +543,21 @@ apiRouter.put('/inventario/:id/minimo', async (req, res, next) => {
   }
 });
 
+apiRouter.delete('/inventario/:id', async (req, res, next) => {
+  try {
+    const id = Number(req.params.id);
+    const result = await query('DELETE FROM inventario_sede WHERE id = $1 RETURNING id', [id]);
+
+    if (!result.rowCount) {
+      return res.status(404).json({ error: 'Registro de inventario no encontrado' });
+    }
+
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+});
+
 apiRouter.post('/inventario/ajustes', async (req, res, next) => {
   try {
     const { sede_id, producto_id, cantidad_delta, referencia } = req.body;
