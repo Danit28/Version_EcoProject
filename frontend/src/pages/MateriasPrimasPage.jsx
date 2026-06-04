@@ -134,9 +134,9 @@ export function MateriasPrimasPage() {
           </tr>
         </thead>
         <tbody>
-          {[...items].sort((a, b) => a.id - b.id).map((it) => (
+          {[...items].sort((a, b) => a.id - b.id).map((it, index) => (
             <tr key={it.id}>
-              <td>{it.id}</td>
+              <td>{index + 1}</td>
               <td>{it.nombre}</td>
               <td>{it.unidad_medida}</td>
               <td>{formatCantidad(it.cantidad_disponible)}</td>

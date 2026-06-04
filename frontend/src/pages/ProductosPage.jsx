@@ -163,9 +163,9 @@ export function ProductosPage() {
           </tr>
         </thead>
         <tbody>
-          {[...productos].sort((a, b) => a.id - b.id).map((p) => (
+          {[...productos].sort((a, b) => a.id - b.id).map((p, index) => (
             <tr key={p.id} className={productoSeleccionado === p.id ? 'selected' : ''}>
-              <td>{p.id}</td>
+              <td>{index + 1}</td>
               <td>{p.nombre}</td>
               <td>{p.descripcion}</td>
               <td>
