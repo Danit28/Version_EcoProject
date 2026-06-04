@@ -349,6 +349,28 @@ apiRouter.put('/sedes/:id', async (req, res, next) => {
 apiRouter.delete('/sedes/:id', async (req, res, next) => {
   try {
     const id = Number(req.params.id);
+    const existe = await query('SELECT id FROM sede WHERE id = $1', [id]);
+    if (!existe.rowCount) {
+      return res.status(404).json({ error: 'Sede no encontrada' });
+    }
+
+    const conHistorial = await query(
+      `SELECT EXISTS (
+          SELECT 1 FROM inventario_sede WHERE sede_id = $1
+      ) OR EXISTS (
+          SELECT 1 FROM inventario_movimiento WHERE sede_id = $1
+      ) OR EXISTS (
+          SELECT 1 FROM produccion WHERE sede_id = $1
+      ) AS tiene_historial`,
+      [id]
+    );
+
+    if (conHistorial.rows[0].tiene_historial) {
+      return res.status(409).json({
+        error: 'No se puede eliminar. La sede tiene inventario o movimientos asociados.'
+      });
+    }
+
     const result = await query('DELETE FROM sede WHERE id = $1 RETURNING id', [id]);
 
     if (!result.rowCount) {
@@ -357,6 +379,11 @@ apiRouter.delete('/sedes/:id', async (req, res, next) => {
 
     res.status(204).send();
   } catch (error) {
+    if (error.code === '23503') {
+      return res.status(409).json({
+        error: 'No se puede eliminar. La sede tiene inventario o movimientos asociados.'
+      });
+    }
     next(error);
   }
 });

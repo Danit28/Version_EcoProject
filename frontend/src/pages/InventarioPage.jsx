@@ -18,6 +18,11 @@ export function InventarioPage() {
   const [ajuste, setAjuste] = useState({ sede_id: '', producto_id: '', cantidad_nueva: '', referencia: '' });
   const [error, setError] = useState('');
 
+  const sedeSeleccionada = ajuste.sede_id ? Number(ajuste.sede_id) : null;
+  const productosPorSede = sedeSeleccionada
+    ? inventario.filter((i) => Number(i.sede_id) === sedeSeleccionada)
+    : [];
+
   async function loadData() {
     const [inv, mov, sed, prod] = await Promise.all([
       getInventario(sedeFiltro || null),
@@ -121,14 +126,38 @@ export function InventarioPage() {
         <p className="form-hint">
           Escribe el nuevo total que debe quedar en inventario para la sede y producto seleccionados.
         </p>
+        {sedeSeleccionada && (
+          <p className="form-hint">
+            Productos disponibles para esta sede: {productosPorSede.length}
+          </p>
+        )}
         <form className="form-grid" onSubmit={onSubmitAjuste}>
-          <select value={ajuste.sede_id} onChange={(e) => setAjuste((s) => ({ ...s, sede_id: e.target.value }))} required>
+          <select
+            value={ajuste.sede_id}
+            onChange={(e) => setAjuste((s) => ({ ...s, sede_id: e.target.value, producto_id: '' }))}
+            required
+          >
             <option value="">Selecciona sede</option>
             {sedes.map((s) => <option key={s.id} value={s.id}>{s.nombre}</option>)}
           </select>
-          <select value={ajuste.producto_id} onChange={(e) => setAjuste((s) => ({ ...s, producto_id: e.target.value }))} required>
-            <option value="">Selecciona producto</option>
-            {productos.map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+          <select
+            value={ajuste.producto_id}
+            onChange={(e) => setAjuste((s) => ({ ...s, producto_id: e.target.value }))}
+            required
+            disabled={!sedeSeleccionada}
+          >
+            <option value="">{sedeSeleccionada ? 'Selecciona producto' : 'Selecciona sede primero'}</option>
+            {productosPorSede
+              .reduce((acc, item) => {
+                if (!acc.has(item.producto_id)) {
+                  acc.set(item.producto_id, item.producto);
+                }
+                return acc;
+              }, new Map())
+              .entries()
+              .map(([id, nombre]) => (
+                <option key={id} value={id}>{nombre}</option>
+              ))}
           </select>
           <input
             type="number"
