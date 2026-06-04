@@ -74,11 +74,11 @@ export function SedesPage() {
       <table>
         <thead>
           <tr>
-            <th>ID</th><th>Nombre</th><th>Direccion</th><th>Telefono</th><th>Acciones</th>
+            <th>#</th><th>Nombre</th><th>Direccion</th><th>Telefono</th><th>Acciones</th>
           </tr>
         </thead>
         <tbody>
-          {sedes.map((s) => (
+          {[...sedes].sort((a, b) => a.id - b.id).map((s, index) => (
             <tr key={s.id}>
               <td>{s.id}</td>
               <td>{s.nombre}</td>
