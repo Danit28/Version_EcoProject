@@ -35,10 +35,30 @@ export function DistribucionPage() {
     setError('');
 
     try {
+      const productoId = Number(form.producto_id);
+      const cantidad = Number(form.cantidad);
+      const central = inventarioCentral.find((item) => Number(item.producto_id) === productoId);
+      const disponible = central ? Number(central.cantidad_actual) : 0;
+
+      if (!Number.isFinite(cantidad) || cantidad <= 0) {
+        setError('La cantidad debe ser mayor a cero.');
+        return;
+      }
+
+      if (!central) {
+        setError('No hay inventario central para el producto seleccionado.');
+        return;
+      }
+
+      if (cantidad > disponible) {
+        setError(`Stock insuficiente en central. Disponible: ${disponible}.`);
+        return;
+      }
+
       await distribuirInventario({
-        producto_id: Number(form.producto_id),
+        producto_id: productoId,
         sede_id: Number(form.sede_id),
-        cantidad: Number(form.cantidad),
+        cantidad,
         referencia: form.referencia
       });
 
