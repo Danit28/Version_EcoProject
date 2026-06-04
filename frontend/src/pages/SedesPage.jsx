@@ -40,7 +40,7 @@ export function SedesPage() {
   }
 
   async function onDelete(id) {
-    if (!window.confirm('Confirmas eliminar la sede?')) return;
+    if (!window.confirm('Esto eliminara la sede y todo lo relacionado. Deseas continuar?')) return;
     try {
       await deleteSede(id);
       await load();

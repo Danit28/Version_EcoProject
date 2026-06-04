@@ -65,12 +65,9 @@ export function ProductosPage() {
   }
 
   async function onDelete(id) {
-    if (!window.confirm('Confirmas retirar el producto del catalogo?')) return;
+    if (!window.confirm('Esto eliminara el producto y todo lo relacionado. Deseas continuar?')) return;
     try {
       const result = await deleteProducto(id);
-      if (result?.mode === 'inactivado') {
-        alert('Producto retirado del catalogo. Se conserva historial de produccion y movimientos.');
-      }
       if (productoSeleccionado === id) {
         setProductoSeleccionado(null);
         setFormula([]);
@@ -166,7 +163,7 @@ export function ProductosPage() {
           </tr>
         </thead>
         <tbody>
-          {productos.map((p) => (
+          {[...productos].sort((a, b) => a.id - b.id).map((p) => (
             <tr key={p.id} className={productoSeleccionado === p.id ? 'selected' : ''}>
               <td>{p.id}</td>
               <td>{p.nombre}</td>

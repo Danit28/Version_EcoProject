@@ -252,39 +252,22 @@ apiRouter.delete('/productos/:id', async (req, res, next) => {
       return res.status(404).json({ error: 'Producto no encontrado' });
     }
 
-    await query('DELETE FROM detalle_formula WHERE producto_id = $1', [id]);
-
-    const conHistorial = await query(
-      `SELECT EXISTS (
-          SELECT 1 FROM produccion WHERE producto_id = $1
-      ) OR EXISTS (
-          SELECT 1 FROM inventario_movimiento WHERE producto_id = $1
-      ) OR EXISTS (
-          SELECT 1 FROM inventario_sede WHERE producto_id = $1
-      ) OR EXISTS (
-          SELECT 1 FROM inventario_central WHERE producto_id = $1
-      ) AS tiene_historial`,
-      [id]
-    );
-
-    if (conHistorial.rows[0].tiene_historial) {
-      await query(
-        `UPDATE producto
-         SET activo = FALSE,
-             deleted_at = NOW(),
-             updated_at = NOW()
-         WHERE id = $1`,
+    await withTransaction(async (client) => {
+      await client.query('DELETE FROM detalle_formula WHERE producto_id = $1', [id]);
+      await client.query(
+        `DELETE FROM produccion_consumo pc
+         USING produccion pr
+         WHERE pc.produccion_id = pr.id AND pr.producto_id = $1`,
         [id]
       );
+      await client.query('DELETE FROM produccion WHERE producto_id = $1', [id]);
+      await client.query('DELETE FROM inventario_movimiento WHERE producto_id = $1', [id]);
+      await client.query('DELETE FROM inventario_sede WHERE producto_id = $1', [id]);
+      await client.query('DELETE FROM inventario_central WHERE producto_id = $1', [id]);
+      await client.query('DELETE FROM producto WHERE id = $1', [id]);
+    });
 
-      return res.status(200).json({
-        ok: true,
-        mode: 'inactivado',
-        message: 'Producto retirado del catalogo y formulas. Se conserva historial.'
-      });
-    }
-
-    const result = await query('DELETE FROM producto WHERE id = $1 RETURNING id', [id]);
+    const result = { rowCount: 1 };
 
     if (!result.rowCount) {
       return res.status(404).json({ error: 'Producto no encontrado' });
@@ -354,24 +337,20 @@ apiRouter.delete('/sedes/:id', async (req, res, next) => {
       return res.status(404).json({ error: 'Sede no encontrada' });
     }
 
-    const conHistorial = await query(
-      `SELECT EXISTS (
-          SELECT 1 FROM inventario_sede WHERE sede_id = $1
-      ) OR EXISTS (
-          SELECT 1 FROM inventario_movimiento WHERE sede_id = $1
-      ) OR EXISTS (
-          SELECT 1 FROM produccion WHERE sede_id = $1
-      ) AS tiene_historial`,
-      [id]
-    );
+    await withTransaction(async (client) => {
+      await client.query(
+        `DELETE FROM produccion_consumo pc
+         USING produccion pr
+         WHERE pc.produccion_id = pr.id AND pr.sede_id = $1`,
+        [id]
+      );
+      await client.query('DELETE FROM produccion WHERE sede_id = $1', [id]);
+      await client.query('DELETE FROM inventario_movimiento WHERE sede_id = $1', [id]);
+      await client.query('DELETE FROM inventario_sede WHERE sede_id = $1', [id]);
+      await client.query('DELETE FROM sede WHERE id = $1', [id]);
+    });
 
-    if (conHistorial.rows[0].tiene_historial) {
-      return res.status(409).json({
-        error: 'No se puede eliminar. La sede tiene inventario o movimientos asociados.'
-      });
-    }
-
-    const result = await query('DELETE FROM sede WHERE id = $1 RETURNING id', [id]);
+    const result = { rowCount: 1 };
 
     if (!result.rowCount) {
       return res.status(404).json({ error: 'Sede no encontrada' });
@@ -379,11 +358,6 @@ apiRouter.delete('/sedes/:id', async (req, res, next) => {
 
     res.status(204).send();
   } catch (error) {
-    if (error.code === '23503') {
-      return res.status(409).json({
-        error: 'No se puede eliminar. La sede tiene inventario o movimientos asociados.'
-      });
-    }
     next(error);
   }
 });

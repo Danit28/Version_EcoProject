@@ -134,7 +134,7 @@ export function MateriasPrimasPage() {
           </tr>
         </thead>
         <tbody>
-          {items.map((it) => (
+          {[...items].sort((a, b) => a.id - b.id).map((it) => (
             <tr key={it.id}>
               <td>{it.id}</td>
               <td>{it.nombre}</td>
